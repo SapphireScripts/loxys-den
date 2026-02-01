@@ -1,0 +1,44 @@
+========================================
+  LOXYS DEN - SETUP INSTRUCTIONS
+========================================
+
+STEP 1: Open Command Prompt
+   - Press Windows key, type "cmd", press Enter
+   - OR in Cursor: Terminal menu -> New Terminal
+
+STEP 2: Copy and paste these commands ONE AT A TIME (press Enter after each):
+
+   cd C:\Users\parke\loxys-den\backend
+
+   npm install
+
+   npm start
+
+STEP 3: When you see "API: http://localhost:3000"
+   - Leave that window OPEN (don't close it!)
+   - The server is now running
+
+STEP 4: Open the website
+   - Open File Explorer
+   - Go to: C:\Users\parke\loxys-den
+   - Double-click index.html
+   - Or right-click index.html -> Open with -> your browser
+
+STEP 5: Register a new account and play!
+
+========================================
+  TROUBLESHOOTING
+========================================
+
+"If npm is not recognized"
+   -> Install Node.js from https://nodejs.org (use LTS version)
+
+"Cannot find module"
+   -> Make sure you ran "cd C:\Users\parke\loxys-den\backend" first
+   -> Then run "npm install" again
+
+"Could not reach server" when logging in
+   -> The backend window must stay open (Step 3)
+   -> Make sure you see "API: http://localhost:3000"
+
+========================================

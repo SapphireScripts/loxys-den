@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Mines | Loxys Den</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #0a0a0b;
+      --bg-card: #111113;
+      --bg-card-hover: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --error: #ef4444;
+      --success: #22c55e;
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.1), transparent);
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--bg-card-hover);
+    }
+
+    /* Game Container */
+    .game-container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .balance-display {
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .balance-display strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .bet-shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .bet-shortcuts button {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-shortcuts button:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      width: 140px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255,255,255,0.12);
+      border-color: var(--border-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Grid */
+    .grid-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .tile {
+      aspect-ratio: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile:hover:not(.revealed) {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+      transform: scale(1.02);
+    }
+
+    .tile.idle {
+      opacity: 0.6;
+      cursor: default;
+      font-size: 18px;
+      color: var(--text-muted);
+    }
+
+    .tile.idle:hover {
+      transform: none;
+      border-color: var(--border);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .tile.revealed {
+      cursor: default;
+    }
+
+    .tile.gem {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: var(--success);
+      animation: popIn 0.3s ease;
+    }
+
+    .tile.mine {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--error);
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    /* Payout display */
+    .payout-display {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .payout-display .value {
+      color: var(--success);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    /* Message */
+    .message {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      min-height: 24px;
+      margin-bottom: 32px;
+    }
+
+    .message.won { color: var(--success); }
+    .message.lost { color: var(--error); }
+
+    /* FAQ */
+    .faq {
+      margin-top: 48px;
+    }
+
+    .faq-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .faq-item h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .faq-item p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-hover);
+      text-decoration: none;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .game-container { padding: 24px 16px 60px; }
+      .page-title { font-size: 28px; }
+      .grid { gap: 8px; }
+      .tile { font-size: 22px; border-radius: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">Loxys Den</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="mines.html">Mines</a>
+        <a href="crash.html">Crash</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html">Admin</a>
+        <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">Discord</a>
+        <span id="authNav"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="game-container">
+    <h1 class="page-title"><span>💎</span> Mines</h1>
+
+    <div class="controls">
+      <div class="balance-display">Balance: <strong id="balance">0</strong></div>
+      
+      <div class="bet-shortcuts">
+        <button type="button" data-bet="50">50</button>
+        <button type="button" data-bet="100">100</button>
+        <button type="button" data-bet="1k">1k</button>
+        <button type="button" data-bet="10k">10k</button>
+        <button type="button" data-bet="100k">100k</button>
+        <button type="button" data-bet="1m">1m</button>
+      </div>
+
+      <div class="controls-row">
+        <input type="text" id="betInput" value="500" placeholder="Bet amount">
+        <button id="startBtn" class="btn btn-primary">Start Game</button>
+        <button id="cashOutBtn" class="btn btn-secondary" disabled>Cash Out</button>
+      </div>
+    </div>
+
+    <div class="payout-display" id="payoutDisplay" style="display: none;">
+      Current payout: <span class="value" id="payoutValue">0</span>
+    </div>
+
+    <div class="grid-container">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <p class="message" id="message"></p>
+
+    <section class="faq">
+      <h2 class="faq-title">How to Play</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>Set your bet</h3>
+          <p>Enter a bet amount (min 50) and click "Start Game" to begin.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Reveal tiles</h3>
+          <p>Click tiles to reveal them. Gems increase your payout, mines end the game.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Cash out anytime</h3>
+          <p>Your payout is bet × (1 + 0.5 per gem). Cash out to secure your winnings.</p>
+        </div>
+        <div class="faq-item">
+          <h3>5 mines hidden</h3>
+          <p>The 5×5 grid contains 5 mines and 20 gems. Good luck!</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Entertainment only • No real money • <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">discord.gg/loxyden</a></p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="auth-api.js"></script>
+  <script>
+    (function() {
+      const el = document.getElementById('authNav');
+      if (el) {
+        const user = Auth.getCurrentUser();
+        el.innerHTML = user ? '<a href="#" onclick="Auth.logout(); location.reload(); return false;">Logout (' + user + ')</a>' : '<a href="login.html">Login</a>';
+      }
+    })();
+  </script>
+  <script>
+    // Auth check
+    if (!Auth.requireAuth('login.html')) {
+      document.body.innerHTML = '<p style="text-align:center;padding:60px;color:#a1a1aa;">Redirecting to login...</p>';
+    } else {
+      (async function() {
+      const me = await Auth.getMe();
+      if (me && me.user) {
+        const nav = document.getElementById('authNav');
+        if (nav) nav.innerHTML = '<a href="#" onclick="Auth.logout(); location.reload(); return false;">Logout (' + me.user + ')</a>';
+      }
+      if (me && me.banned) {
+        document.querySelector('.game-container .controls')?.insertAdjacentHTML('afterbegin',
+          '<p class="message lost" style="margin-bottom:16px">You are banned and cannot play.</p>');
+        document.getElementById('startBtn').disabled = true;
+      }
+      // Game state
+      let balance = 0;
+      let bet = 0;
+      let mines = new Set();
+      let revealed = 0;
+      let active = false;
+
+      // DOM elements
+      const balanceEl = document.getElementById('balance');
+      const messageEl = document.getElementById('message');
+      const startBtn = document.getElementById('startBtn');
+      const cashOutBtn = document.getElementById('cashOutBtn');
+      const gridEl = document.getElementById('grid');
+      const betInput = document.getElementById('betInput');
+      const payoutDisplay = document.getElementById('payoutDisplay');
+      const payoutValue = document.getElementById('payoutValue');
+
+      async function updateBalance() {
+        balance = await Auth.getBalance();
+        balanceEl.textContent = formatBalance(balance);
+      }
+
+      function updatePayout() {
+        if (!active || revealed === 0) {
+          payoutDisplay.style.display = 'none';
+          return;
+        }
+        const payout = Math.floor(bet * (1 + revealed * 0.5));
+        payoutValue.textContent = formatBalance(payout);
+        payoutDisplay.style.display = 'block';
+      }
+
+      // Bet shortcuts
+      document.querySelectorAll('.bet-shortcuts button').forEach(btn => {
+        btn.onclick = () => betInput.value = btn.dataset.bet;
+      });
+
+      function buildGrid() {
+        gridEl.innerHTML = '';
+        for (let i = 0; i < 25; i++) {
+          const tile = document.createElement('div');
+          tile.className = 'tile idle';
+          tile.textContent = '?';
+          tile.dataset.index = i;
+          tile.onclick = () => clickTile(tile, i);
+          gridEl.appendChild(tile);
+        }
+      }
+
+      buildGrid();
+      updateBalance();
+
+      startBtn.onclick = async function() {
+        if (active) return;
+
+        const betVal = parseBetInput(betInput.value);
+        if (isNaN(betVal) || betVal < 50) {
+          messageEl.textContent = 'Enter a valid bet (min 50)';
+          messageEl.className = 'message';
+          return;
+        }
+        if (betVal > balance) {
+          messageEl.textContent = 'Insufficient balance';
+          messageEl.className = 'message';
+          return;
+        }
+
+        bet = betVal;
+        const r = await Auth.addBalance(-bet);
+        if (!r.ok) {
+          messageEl.textContent = r.msg || 'Transaction failed';
+          messageEl.className = 'message lost';
+          return;
+        }
+        await updateBalance();
+        
+        mines.clear();
+        revealed = 0;
+        active = true;
+        startBtn.disabled = true;
+        cashOutBtn.disabled = false;
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+
+        // Generate 5 random mine positions
+        const positions = [...Array(25).keys()].sort(() => Math.random() - 0.5);
+        mines = new Set(positions.slice(0, 5));
+
+        // Reset grid
+        const tiles = gridEl.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+          tile.textContent = '';
+          tile.className = 'tile';
+        });
+
+        updatePayout();
+      };
+
+      async function clickTile(tile, index) {
+        if (!active || tile.classList.contains('revealed')) return;
+
+        tile.classList.add('revealed');
+
+        if (mines.has(index)) {
+          tile.textContent = '💣';
+          tile.classList.add('mine');
+          messageEl.textContent = 'Boom! You hit a mine and lost ' + formatBalance(bet);
+          messageEl.className = 'message lost';
+          endGame();
+        } else {
+          tile.textContent = '💎';
+          tile.classList.add('gem');
+          revealed++;
+          updatePayout();
+
+          // Check if all gems found
+          if (revealed === 20) {
+            const win = Math.floor(bet * (1 + revealed * 0.5));
+            const r = await Auth.addBalance(win);
+            if (!r.ok) messageEl.textContent = r.msg || 'Payout failed';
+            await updateBalance();
+            messageEl.textContent = 'All gems found! +' + formatBalance(win);
+            messageEl.className = 'message won';
+            endGame();
+          }
+        }
+      }
+
+      cashOutBtn.onclick = async function() {
+        if (!active || revealed === 0) return;
+        
+        const win = Math.floor(bet * (1 + revealed * 0.5));
+        const r = await Auth.addBalance(win);
+        if (!r.ok) { messageEl.textContent = r.msg || 'Payout failed'; messageEl.className = 'message lost'; endGame(); return; }
+        await updateBalance();
+        messageEl.textContent = 'Cashed out +' + formatBalance(win);
+        messageEl.className = 'message won';
+        endGame();
+      };
+
+      function endGame() {
+        active = false;
+        startBtn.disabled = false;
+        cashOutBtn.disabled = true;
+        payoutDisplay.style.display = 'none';
+      }
+      })();
+    }
+  </script>
+</body>
+</html>

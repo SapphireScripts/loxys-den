@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Leaderboard | Loxys Den</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #0a0a0b;
+      --bg-card: #111113;
+      --bg-card-hover: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --gold: #fbbf24;
+      --silver: #94a3b8;
+      --bronze: #d97706;
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.1), transparent);
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--bg-card-hover);
+    }
+
+    /* Leaderboard Container */
+    .leaderboard-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .page-subtitle {
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .refresh-btn {
+      display: block;
+      margin: 0 auto 24px;
+      padding: 10px 20px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 8px;
+      color: var(--accent-hover);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: var(--accent);
+    }
+
+    /* Leaderboard List */
+    .leaderboard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+      animation: slideIn 0.3s ease backwards;
+    }
+
+    .leaderboard-item:last-child {
+      border-bottom: none;
+    }
+
+    .leaderboard-item:nth-child(1) { animation-delay: 0.05s; }
+    .leaderboard-item:nth-child(2) { animation-delay: 0.1s; }
+    .leaderboard-item:nth-child(3) { animation-delay: 0.15s; }
+    .leaderboard-item:nth-child(4) { animation-delay: 0.2s; }
+    .leaderboard-item:nth-child(5) { animation-delay: 0.25s; }
+    .leaderboard-item:nth-child(6) { animation-delay: 0.3s; }
+    .leaderboard-item:nth-child(7) { animation-delay: 0.35s; }
+    .leaderboard-item:nth-child(8) { animation-delay: 0.4s; }
+    .leaderboard-item:nth-child(9) { animation-delay: 0.45s; }
+    .leaderboard-item:nth-child(10) { animation-delay: 0.5s; }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .leaderboard-item.you {
+      background: rgba(99, 102, 241, 0.08);
+      border-left: 3px solid var(--accent);
+    }
+
+    .rank {
+      width: 40px;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .leaderboard-item:nth-child(1) .rank { color: var(--gold); }
+    .leaderboard-item:nth-child(2) .rank { color: var(--silver); }
+    .leaderboard-item:nth-child(3) .rank { color: var(--bronze); }
+
+    .rank-medal {
+      font-size: 24px;
+    }
+
+    .username {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .you-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: var(--accent);
+      color: white;
+      border-radius: 100px;
+    }
+
+    .balance {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent-hover);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+    }
+
+    /* Back link */
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 32px;
+      color: var(--text-muted);
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-hover);
+      text-decoration: none;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .leaderboard-container { padding: 24px 16px 60px; }
+      .page-title { font-size: 28px; }
+      .leaderboard-item { padding: 14px 16px; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">Loxys Den</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="mines.html">Mines</a>
+        <a href="crash.html">Crash</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html">Admin</a>
+        <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">Discord</a>
+        <span id="authNav"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="leaderboard-container">
+    <h1 class="page-title"><span>🏆</span> Leaderboard</h1>
+    <p class="page-subtitle">Top 10 players by balance</p>
+
+    <div id="fileProtocolWarning" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:16px;margin-bottom:24px;color:#fca5a5;font-size:14px;">
+      <strong>Use the backend to view the leaderboard.</strong> Open <a href="http://localhost:3000" style="color:#818cf8;">http://localhost:3000</a> after starting the backend.
+    </div>
+
+    <button type="button" class="refresh-btn" id="refreshBtn">Refresh</button>
+
+    <div class="leaderboard" id="leaderboard"></div>
+
+    <a href="index.html" class="back-link">Back to Loxys Den</a>
+  </main>
+
+  <footer>
+    <p>Entertainment only • No real money • <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">discord.gg/loxyden</a></p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="auth-api.js"></script>
+  <script>
+    (function() {
+      const el = document.getElementById('authNav');
+      if (el) {
+        const user = Auth.getCurrentUser();
+        el.innerHTML = user ? '<a href="#" onclick="Auth.logout(); location.reload(); return false;">Logout (' + user + ')</a>' : '<a href="login.html">Login</a>';
+      }
+    })();
+  </script>
+  <script>
+    (async function() {
+      const leaderboardEl = document.getElementById('leaderboard');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const fileWarning = document.getElementById('fileProtocolWarning');
+
+      // Warn if using file:// - each page has separate localStorage, leaderboard won't show all users
+      if (window.location.protocol === 'file:') {
+        if (fileWarning) fileWarning.style.display = 'block';
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function getMedal(rank) {
+        if (rank === 1) return '<span class="rank-medal">🥇</span>';
+        if (rank === 2) return '<span class="rank-medal">🥈</span>';
+        if (rank === 3) return '<span class="rank-medal">🥉</span>';
+        return '#' + rank;
+      }
+
+      async function render() {
+        const entries = await getLeaderboard(10);
+        const currentUser = Auth.getCurrentUser();
+
+        if (!entries || entries.length === 0) {
+          leaderboardEl.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🏆</div>
+              <p>No players yet. Register and play to appear here!</p>
+            </div>
+          `;
+          return;
+        }
+
+        leaderboardEl.innerHTML = entries.map((entry, index) => {
+          const rank = index + 1;
+          const isYou = currentUser && entry.username.toLowerCase() === currentUser.toLowerCase();
+          
+          return `
+            <div class="leaderboard-item${isYou ? ' you' : ''}">
+              <div class="rank">${getMedal(rank)}</div>
+              <div class="username">
+                ${escapeHtml(entry.username)}
+                ${isYou ? '<span class="you-badge">YOU</span>' : ''}
+              </div>
+              <div class="balance">${formatBalance(entry.balance)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      await render();
+
+      refreshBtn.onclick = async function() {
+        // Add a quick animation
+        leaderboardEl.style.opacity = '0.5';
+        await render();
+        leaderboardEl.style.opacity = '1';
+      };
+    })();
+  </script>
+</body>
+</html>

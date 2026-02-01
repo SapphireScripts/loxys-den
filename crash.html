@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Crash | Loxys Den</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #0a0a0b;
+      --bg-card: #111113;
+      --bg-card-hover: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --error: #ef4444;
+      --success: #22c55e;
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.1), transparent);
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--bg-card-hover);
+    }
+
+    /* Game Container */
+    .game-container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    /* Rocket Display */
+    .rocket-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      min-height: 220px;
+    }
+
+    .rocket-container.running {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
+    }
+
+    .rocket-container.crashed {
+      border-color: var(--error);
+      box-shadow: 0 0 40px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Stars background */
+    .stars {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0.5;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    /* Rocket Animation */
+    .rocket {
+      font-size: 64px;
+      display: block;
+      margin-bottom: 16px;
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .rocket.flying {
+      animation: rocketFly 0.5s ease-in-out infinite;
+    }
+
+    .rocket.crashed-anim {
+      animation: rocketCrash 0.5s ease forwards;
+    }
+
+    @keyframes rocketFly {
+      0%, 100% { transform: translateY(0) rotate(-10deg); }
+      50% { transform: translateY(-8px) rotate(-15deg); }
+    }
+
+    @keyframes rocketCrash {
+      0% { transform: rotate(-10deg); }
+      50% { transform: rotate(45deg) translateY(20px); }
+      100% { transform: rotate(90deg) translateY(40px) scale(0.9); opacity: 0.5; }
+    }
+
+    /* Flame trail */
+    .flame {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 60px;
+      opacity: 0;
+      z-index: 0;
+    }
+
+    .flame.active {
+      opacity: 1;
+      animation: flameFlicker 0.1s ease-in-out infinite;
+    }
+
+    .flame::before,
+    .flame::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      border-radius: 50%;
+    }
+
+    .flame::before {
+      left: 5px;
+      width: 20px;
+      height: 40px;
+      background: linear-gradient(to bottom, #fbbf24, #f97316, #ef4444);
+      filter: blur(2px);
+    }
+
+    .flame::after {
+      left: 8px;
+      width: 14px;
+      height: 25px;
+      background: linear-gradient(to bottom, #fef3c7, #fbbf24);
+      filter: blur(1px);
+    }
+
+    @keyframes flameFlicker {
+      0%, 100% { transform: translateX(-50%) scaleY(1); }
+      50% { transform: translateX(-50%) scaleY(0.9); }
+    }
+
+    .multiplier {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .multiplier.crashed {
+      color: var(--error);
+    }
+
+    .multiplier-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .balance-display {
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .balance-display strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .bet-shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .bet-shortcuts button {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-shortcuts button:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .controls-row:last-child {
+      margin-bottom: 0;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 140px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #0a0a0b;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #16a34a;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .auto-cashout-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    /* Message */
+    .message {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      min-height: 24px;
+      margin-bottom: 24px;
+    }
+
+    .message.won { color: var(--success); }
+    .message.lost { color: var(--error); }
+
+    /* History */
+    .history {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .history-item {
+      padding: 6px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--error);
+    }
+
+    /* FAQ */
+    .faq {
+      margin-top: 48px;
+    }
+
+    .faq-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .faq-item h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .faq-item p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-hover);
+      text-decoration: none;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .game-container { padding: 24px 16px 60px; }
+      .page-title { font-size: 28px; }
+      .multiplier { font-size: 44px; }
+      .rocket { font-size: 52px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">Loxys Den</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="mines.html">Mines</a>
+        <a href="crash.html">Crash</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html">Admin</a>
+        <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">Discord</a>
+        <span id="authNav"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="game-container">
+    <h1 class="page-title"><span>🚀</span> Crash</h1>
+
+    <div class="rocket-container" id="rocketContainer">
+      <div class="stars" id="stars"></div>
+      <div class="flame" id="flame"></div>
+      <span class="rocket" id="rocket">🚀</span>
+      <p class="multiplier" id="multiplierDisplay">1.00x</p>
+      <p class="multiplier-label" id="multiplierLabel">Place bet to launch</p>
+    </div>
+
+    <div class="controls">
+      <div class="balance-display">Balance: <strong id="balance">0</strong></div>
+      
+      <div class="bet-shortcuts">
+        <button type="button" data-bet="50">50</button>
+        <button type="button" data-bet="100">100</button>
+        <button type="button" data-bet="1k">1k</button>
+        <button type="button" data-bet="10k">10k</button>
+        <button type="button" data-bet="100k">100k</button>
+        <button type="button" data-bet="1m">1m</button>
+      </div>
+
+      <div class="controls-row">
+        <input type="text" id="betInput" value="500" placeholder="Bet amount">
+        <button id="startBtn" class="btn btn-primary" onclick="placeBet()">Place Bet</button>
+        <button id="cashOutBtn" class="btn btn-success" onclick="cashOut()" disabled>Cash Out</button>
+      </div>
+
+      <p class="auto-cashout-label">Auto cash out at (optional)</p>
+      <div class="controls-row">
+        <input type="number" id="autoCashOut" placeholder="e.g. 2.00" min="1.01" step="0.01">
+      </div>
+    </div>
+
+    <p class="message" id="message"></p>
+    
+    <div class="history" id="history"></div>
+
+    <section class="faq">
+      <h2 class="faq-title">How to Play</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>Place your bet</h3>
+          <p>Enter a bet amount and click "Place Bet" to launch the rocket.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Watch the multiplier</h3>
+          <p>The multiplier starts at 1.00x and increases over time. The longer you wait, the higher it goes.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Cash out before crash</h3>
+          <p>Click "Cash Out" before the rocket crashes to win (bet × multiplier). If you don't cash out in time, you lose your bet.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Auto cash out</h3>
+          <p>Set a target multiplier to automatically cash out when reached.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Entertainment only • No real money • <a href="https://discord.gg/loxyden" target="_blank" rel="noopener">discord.gg/loxyden</a></p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="auth-api.js"></script>
+  <script>
+    (function() {
+      const el = document.getElementById('authNav');
+      if (el) {
+        const user = Auth.getCurrentUser();
+        el.innerHTML = user ? '<a href="#" onclick="Auth.logout(); location.reload(); return false;">Logout (' + user + ')</a>' : '<a href="login.html">Login</a>';
+      }
+    })();
+  </script>
+  <script>
+    // Auth check
+    if (!Auth.requireAuth('login.html')) {
+      document.body.innerHTML = '<p style="text-align:center;padding:60px;color:#a1a1aa;">Redirecting to login...</p>';
+    } else {
+      (async function() {
+      const me = await Auth.getMe();
+      if (me && me.user) {
+        const nav = document.getElementById('authNav');
+        if (nav) nav.innerHTML = '<a href="#" onclick="Auth.logout(); location.reload(); return false;">Logout (' + me.user + ')</a>';
+      }
+      if (me && me.banned) {
+        document.querySelector('.controls')?.insertAdjacentHTML('afterbegin',
+          '<p class="message" style="margin-bottom:16px;color:#fca5a5">You are banned and cannot play.</p>');
+        document.getElementById('startBtn').disabled = true;
+      }
+      // Generate stars
+      const starsEl = document.getElementById('stars');
+      for (let i = 0; i < 30; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 2 + 's';
+        starsEl.appendChild(star);
+      }
+
+      // Weighted crash - occasional early bust, still rare above 2.5x
+      function getWeightedCrashPoint() {
+        const r = Math.random();
+        let min, max;
+        if (r < 0.06) {           // 6%: rare instant 1.01 - 1.12
+          min = 1.01; max = 1.12;
+        } else if (r < 0.35) {    // 29%: early 1.15 - 1.60
+          min = 1.15; max = 1.60;
+        } else if (r < 0.65) {    // 30%: mid 1.60 - 2.10
+          min = 1.60; max = 2.10;
+        } else if (r < 0.88) {    // 23%: late 2.10 - 2.50
+          min = 2.10; max = 2.50;
+        } else if (r < 0.97) {    // 9%: rare 2.50 - 4.00
+          min = 2.50; max = 4.00;
+        } else {                  // 3%: very rare 4.00 - 7.00
+          min = 4.00; max = 7.00;
+        }
+        const val = min + Math.random() * (max - min);
+        return Math.round(val * 100) / 100;
+      }
+
+      // Game state
+      let balance = 0;
+      let bet = 0;
+      let multiplier = 1;
+      let crashPoint = 1;
+      let active = false;
+      let tickId = null;
+      const TICK_MS = 50;
+      const MULT_PER_TICK = 0.012;
+      const history = [];
+
+      // DOM elements
+      const balanceEl = document.getElementById('balance');
+      const messageEl = document.getElementById('message');
+      const multiplierEl = document.getElementById('multiplierDisplay');
+      const labelEl = document.getElementById('multiplierLabel');
+      const containerEl = document.getElementById('rocketContainer');
+      const rocketEl = document.getElementById('rocket');
+      const flameEl = document.getElementById('flame');
+      const startBtn = document.getElementById('startBtn');
+      const cashOutBtn = document.getElementById('cashOutBtn');
+      const historyEl = document.getElementById('history');
+      const betInput = document.getElementById('betInput');
+
+      async function updateBalance() {
+        balance = await Auth.getBalance();
+        balanceEl.textContent = formatBalance(balance);
+      }
+
+      // Bet shortcuts
+      document.querySelectorAll('.bet-shortcuts button').forEach(btn => {
+        btn.onclick = () => betInput.value = btn.dataset.bet;
+      });
+
+      updateBalance();
+
+      async function placeBet() {
+        if (active) return;
+        
+        const betVal = parseBetInput(betInput.value);
+        if (isNaN(betVal) || betVal < 50) {
+          messageEl.textContent = 'Enter a valid bet (min 50)';
+          messageEl.className = 'message';
+          return;
+        }
+        if (betVal > balance) {
+          messageEl.textContent = 'Insufficient balance';
+          messageEl.className = 'message';
+          return;
+        }
+
+        bet = betVal;
+        const r = await Auth.addBalance(-bet);
+        if (!r.ok) {
+          messageEl.textContent = r.msg || 'Transaction failed';
+          messageEl.className = 'message';
+          return;
+        }
+        await updateBalance();
+        
+        multiplier = 1;
+        active = true;
+        startBtn.disabled = true;
+        cashOutBtn.disabled = false;
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+
+        // Visual state
+        containerEl.classList.remove('crashed');
+        containerEl.classList.add('running');
+        multiplierEl.classList.remove('crashed');
+        rocketEl.classList.remove('crashed-anim');
+        rocketEl.classList.add('flying');
+        flameEl.classList.add('active');
+        labelEl.textContent = 'Cash out before crash!';
+
+        // Weighted crash point - favors early crashes, rare above 2.5x
+        crashPoint = getWeightedCrashPoint();
+
+        multiplierEl.textContent = '1.00x';
+        tickId = setInterval(tick, TICK_MS);
+      }
+
+      function tick() {
+        if (!active) return;
+
+        multiplier += MULT_PER_TICK;
+        multiplier = Math.round(multiplier * 100) / 100;
+
+        if (multiplier >= crashPoint) {
+          crash();
+          return;
+        }
+
+        // Auto cash out check
+        const autoVal = parseFloat(document.getElementById('autoCashOut').value);
+        if (!isNaN(autoVal) && autoVal >= 1.01 && multiplier >= autoVal) {
+          doCashOut();
+          return;
+        }
+
+        multiplierEl.textContent = multiplier.toFixed(2) + 'x';
+      }
+
+      function crash() {
+        clearInterval(tickId);
+        tickId = null;
+        active = false;
+        startBtn.disabled = false;
+        cashOutBtn.disabled = true;
+
+        // Visual state
+        containerEl.classList.remove('running');
+        containerEl.classList.add('crashed');
+        rocketEl.classList.remove('flying');
+        rocketEl.classList.add('crashed-anim');
+        flameEl.classList.remove('active');
+        multiplierEl.textContent = 'Crashed @ ' + crashPoint.toFixed(2) + 'x';
+        multiplierEl.classList.add('crashed');
+        labelEl.textContent = 'Round over';
+        
+        messageEl.textContent = 'Crashed! You lost ' + formatBalance(bet);
+        messageEl.className = 'message lost';
+
+        history.unshift(crashPoint);
+        if (history.length > 8) history.pop();
+        renderHistory();
+      }
+
+      async function doCashOut() {
+        if (!active) return;
+        
+        clearInterval(tickId);
+        tickId = null;
+        
+        const win = Math.floor(bet * multiplier);
+        const r = await Auth.addBalance(win);
+        if (!r.ok) {
+          messageEl.textContent = r.msg || 'Payout failed';
+          messageEl.className = 'message';
+        }
+        await updateBalance();
+        
+        active = false;
+        startBtn.disabled = false;
+        cashOutBtn.disabled = true;
+
+        // Visual state
+        containerEl.classList.remove('running');
+        rocketEl.classList.remove('flying');
+        flameEl.classList.remove('active');
+        labelEl.textContent = 'Cashed out @ ' + multiplier.toFixed(2) + 'x';
+        
+        messageEl.textContent = '+' + formatBalance(win) + ' (cashed out @ ' + multiplier.toFixed(2) + 'x)';
+        messageEl.className = 'message won';
+      }
+
+      function cashOut() {
+        doCashOut();
+      }
+
+      function renderHistory() {
+        if (history.length === 0) {
+          historyEl.innerHTML = '';
+          return;
+        }
+        historyEl.innerHTML = history.map(x => 
+          '<span class="history-item">' + x.toFixed(2) + 'x</span>'
+        ).join('');
+      }
+      })();
+    }
+  </script>
+</body>
+</html>
